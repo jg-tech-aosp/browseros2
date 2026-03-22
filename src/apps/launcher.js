@@ -11,13 +11,13 @@
  * Depends on: JSZip (loaded via CDN in index.html)
  */
 
-// BOS client source — read at build time and inlined into every iframe.
-// We fetch it once and cache it.
+// Base URL for fetching app resources — works on any subdirectory hosting
+const BASE_URL = new URL('.', import.meta.url).href.replace('/src/apps/', '/');
 let _bosClientSrc = null;
 
 async function getBosClientSrc() {
   if (_bosClientSrc) return _bosClientSrc;
-  const res = await fetch('src/bos/client.js');
+  const res = await fetch(`${BASE_URL}src/bos/client.js`);
   _bosClientSrc = await res.text();
   return _bosClientSrc;
 }
@@ -357,7 +357,7 @@ export class Launcher {
       const existing = await this._db.apps.get(appId);
       if (existing) continue; // already installed
 
-      const url      = `apps/${appId}.beep`;
+      const url      = `${BASE_URL}apps/${appId}.beep`;
       const fspath   = `/Apps/${appId}.beep`;
 
       try {
