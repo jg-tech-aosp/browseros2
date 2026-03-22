@@ -290,6 +290,16 @@ export class Desktop {
         el.style.top     = Math.max(0, st + dy) + 'px';
         el.style.opacity = '0.7';
         el.style.zIndex  = '999';
+
+        // Highlight folder icons under cursor
+        this._icons.forEach(other => {
+          if (other.el === el || !other.fspath) return;
+          const r = other.el.getBoundingClientRect();
+          const over = e2.clientX >= r.left && e2.clientX <= r.right
+                    && e2.clientY >= r.top  && e2.clientY <= r.bottom;
+          other.el.style.outline    = over ? '2px solid var(--wm-accent)' : '';
+          other.el.style.background = over ? 'rgba(0,120,212,0.2)' : '';
+        });
       };
 
       const onUp = async e2 => {
@@ -299,6 +309,35 @@ export class Desktop {
         el.style.zIndex  = '';
 
         if (!didDrag) return;
+
+        // Check if dropped onto a folder icon
+        for (const [otherKey, other] of this._icons) {
+          if (other.el === el || !other.fspath) continue;
+          const r = other.el.getBoundingClientRect();
+          const over = e2.clientX >= r.left && e2.clientX <= r.right
+                    && e2.clientY >= r.top  && e2.clientY <= r.bottom;
+          if (!over) continue;
+          other.el.style.outline = ''; other.el.style.background = '';
+          // Only move files into folders
+          if (ic.fspath) {
+            const filename = ic.fspath.split('/').pop();
+            const destPath = other.fspath.replace(/\/$/, '') + '/' + filename;
+            const res = await this._fs.move(ic.fspath, destPath);
+            if (res.ok) {
+              this._freeCell(ic.gridX, ic.gridY);
+              ic.el.remove();
+              this._icons.delete(key);
+              await this._savePositions();
+              this._wm.notify(`Moved "${filename}" into "${other.label}"`);
+            } else {
+              this._wm.notify('Move failed: ' + res.error);
+              // Snap back to original position
+              const { x, y } = this._cellToPixel(ic.gridX, ic.gridY);
+              el.style.left = x + 'px'; el.style.top = y + 'px';
+            }
+          }
+          return;
+        }
 
         const curX = parseInt(el.style.left) || 0;
         const curY = parseInt(el.style.top)  || 0;
