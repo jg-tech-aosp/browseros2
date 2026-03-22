@@ -162,6 +162,17 @@ export class Kernel {
         return null;
       }
 
+      case 'ui.startDrag': {
+        // App is dragging a file — OS creates a drag overlay on the parent page
+        this._wm.startDrag(inst.instanceId, payload.path, payload.name, payload.icon);
+        return null;
+      }
+
+      case 'ui.endDrag': {
+        this._wm.endDrag();
+        return null;
+      }
+
       // ── UI — interactive ────────────────────────────────────────────────────
       // These block until the user responds.
       // We use native browser dialogs for now — v2.x can do custom modal UI.
