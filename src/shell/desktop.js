@@ -46,8 +46,9 @@ export class Desktop {
   async _addDefaultAppIcons() {
     // Native system apps first
     const nativeIcons = [
-      { appId: 'filemanager', label: 'File Manager', icon: '📁', x: 20, y: 20 },
-      { appId: 'settings',    label: 'Settings',     icon: '⚙️',  x: 20, y: 120 },
+      { appId: 'filemanager', label: 'File Manager', icon: '📁', x: 20,  y: 20  },
+      { appId: 'browser',     label: 'Browser',      icon: '🌐', x: 20,  y: 120 },
+      { appId: 'settings',    label: 'Settings',     icon: '⚙️',  x: 20,  y: 220 },
     ];
     nativeIcons.forEach(ic => this.addIcon(ic));
 
