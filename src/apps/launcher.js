@@ -203,8 +203,11 @@ export class Launcher {
     const manifest = JSON.parse(await manifestFile.async('string'));
     validateManifest(manifest, fspath);
 
-    // Extract icon
-    const iconDataUrl = manifest.icon ? await extractIcon(zip, manifest.icon) : null;
+    // Extract icon — use image file if present, fall back to emoji
+    const iconDataUrl = (manifest.icon && zip.file(manifest.icon))
+      ? await extractIcon(zip, manifest.icon)
+      : null;
+    const iconEmoji = manifest.emoji || '⚡';
 
     const appId = deriveAppId(fspath);
 
@@ -213,7 +216,8 @@ export class Launcher {
       path:        fspath,
       name:        manifest.name,
       version:     manifest.version,
-      icon:        iconDataUrl,
+      icon:        iconDataUrl,   // null if no image — use emoji instead
+      emoji:       iconEmoji,     // always set, used as text fallback
       permissions: manifest.permissions,
       events:      manifest.events,
       entry:       manifest.entry,
@@ -285,11 +289,12 @@ export class Launcher {
     const srcdoc       = buildSrcdoc(bosClientSrc, appMainSrc, app);
     const instanceId   = generateInstanceId(app.id);
 
-    // Create window + iframe
+    // Create window + iframe — use image icon or emoji fallback
+    const windowIcon = app.icon || app.emoji || '⚡';
     const iframe = this._wm.createAppWindow({
       instanceId,
       title:  app.name,
-      icon:   app.icon || '⚡',
+      icon:   windowIcon,
       width:  app.width,
       height: app.height,
       srcdoc,
