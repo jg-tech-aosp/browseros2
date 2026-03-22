@@ -26,6 +26,7 @@ import { Notifications }  from './ui/notifications.js';
 import { registerSettingsApp } from './ui/settings-app.js';
 import { registerFileManager } from './shell/filemanager.js';
 import { registerBrowser }     from './shell/browser.js';
+import { registerAppStore }    from './shell/appstore.js';
 import { Desktop }        from './shell/desktop.js';
 import { Taskbar }       from './shell/taskbar.js';
 import { StartMenu }  from './shell/startmenu.js';
@@ -40,7 +41,6 @@ const INBOX_APPS = [
   'terminal',
   'calculator',
   'paint',
-  'appstore',
   'musicplayer',
   'markdownviewer',
   'sysmonitor',
@@ -96,6 +96,7 @@ async function boot() {
     registerSettingsApp({ wm, settings, kernel, db });
     registerFileManager({ wm, fs, db, launcher, kernel, settings });
     registerBrowser({ wm, fs, db });
+    registerAppStore({ wm, fs, db, launcher });
 
     // ── 7. Shell + Desktop ────────────────────────────────────────────────────
     console.log('[bos] Booting notifications...');
