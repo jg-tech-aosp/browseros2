@@ -308,8 +308,23 @@ export class Desktop {
 
   _setupDropTarget() {
     this._desktop.addEventListener('bos-icon-drop', async e => {
-      // From FM to desktop
       const { path, name } = e.detail;
+      if (!path) return;
+      const filename = path.split('/').pop();
+      const destPath = '/Desktop/' + filename;
+      if (path === destPath) return;
+      const res = await this._fs.move(path, destPath);
+      if (res.ok) {
+        await this._restoreDesktopFiles();
+        this._wm.notify(`Moved "${filename}" to Desktop`);
+      } else {
+        this._wm.notify('Move failed: ' + res.error);
+      }
+    });
+
+    // Receive drops from FM via OS-level drag (postMessage based)
+    document.addEventListener('bos:dropOnDesktop', async e => {
+      const { path, name, x, y } = e.detail;
       if (!path) return;
       const filename = path.split('/').pop();
       const destPath = '/Desktop/' + filename;
