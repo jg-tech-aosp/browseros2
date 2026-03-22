@@ -33,6 +33,7 @@ const PERMISSION_MAP = {
   'ui.setProgress': { type: 'static', perm: 'ui.passive' },
   'ui.startDrag':   { type: 'static', perm: 'ui.passive' },
   'ui.endDrag':     { type: 'static', perm: 'ui.passive' },
+  'ui.dragMove':    { type: 'static', perm: 'ui.passive' },
 
   // UI interactive
   'ui.alert':   { type: 'static', perm: 'ui.interactive' },

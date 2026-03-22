@@ -163,13 +163,17 @@ export class Kernel {
       }
 
       case 'ui.startDrag': {
-        // App is dragging a file — OS creates a drag overlay on the parent page
         this._wm.startDrag(inst.instanceId, payload.path, payload.name, payload.icon);
         return null;
       }
 
+      case 'ui.dragMove': {
+        this._wm.moveDragGhost(payload.x, payload.y);
+        return null;
+      }
+
       case 'ui.endDrag': {
-        this._wm.endDrag();
+        this._wm.endDrag(payload.dropped);
         return null;
       }
 
