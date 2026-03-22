@@ -88,11 +88,33 @@ export function registerAppStore({ wm, fs, db, launcher }) {
 
           const installBtn = document.createElement('button');
           installBtn.textContent = isInstalled ? '✓ Installed' : isLoading ? 'Installing...' : 'Install';
-          installBtn.style.cssText = `background:${isInstalled ? 'rgba(16,124,16,0.3)' : 'var(--wm-accent)'};border:none;color:#fff;border-radius:6px;padding:7px;font-size:13px;cursor:${isInstalled || isLoading ? 'default' : 'pointer'};transition:filter 0.15s`;
-          if (!isInstalled && !isLoading) {
+          installBtn.style.cssText = `background:${isInstalled ? 'rgba(16,124,16,0.3)' : 'var(--wm-accent)'};border:none;color:#fff;border-radius:6px;padding:7px;font-size:13px;cursor:${isLoading ? 'default' : 'pointer'};transition:filter 0.15s`;
+
+          if (!isLoading) {
             installBtn.onmouseenter = () => installBtn.style.filter = 'brightness(1.15)';
             installBtn.onmouseleave = () => installBtn.style.filter = '';
             installBtn.onclick = () => installApp(app, installBtn);
+          }
+
+          // Reinstall button for already-installed apps
+          if (isInstalled) {
+            const reinstallBtn = document.createElement('button');
+            reinstallBtn.textContent = '↺ Reinstall';
+            reinstallBtn.style.cssText = 'background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.1);color:var(--wm-text-dim);border-radius:6px;padding:5px;font-size:11px;cursor:pointer;margin-top:2px;transition:background 0.15s';
+            reinstallBtn.onmouseenter = () => reinstallBtn.style.background = 'rgba(255,255,255,0.15)';
+            reinstallBtn.onmouseleave = () => reinstallBtn.style.background = 'rgba(255,255,255,0.07)';
+            reinstallBtn.onclick = async () => {
+              delete installing[app.id];
+              await db.apps.delete(app.id);
+              await installApp(app, installBtn);
+            };
+            card.appendChild(topRow);
+            card.appendChild(desc);
+            card.appendChild(meta);
+            card.appendChild(installBtn);
+            card.appendChild(reinstallBtn);
+            main.appendChild(card);
+            return;
           }
 
           card.appendChild(topRow);
