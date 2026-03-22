@@ -187,10 +187,14 @@ export class Desktop {
       try { await this._launcher.launch(ic.beep); }
       catch(e) { this._wm.notify('Failed to launch: ' + e.message); }
     } else if (ic.appId) {
-      try { await this._launcher.launchById(ic.appId); }
-      catch(e) { this._wm.notify('Failed to launch: ' + e.message); }
+      // Check native system apps first
+      if (this._wm._systemApps.has(ic.appId)) {
+        this._wm.openSystemApp(ic.appId);
+      } else {
+        try { await this._launcher.launchById(ic.appId); }
+        catch(e) { this._wm.notify('Failed to launch: ' + e.message); }
+      }
     } else if (ic.fspath) {
-      // Open file with appropriate app
       this._openFile(ic.fspath, ic.label);
     }
   }
