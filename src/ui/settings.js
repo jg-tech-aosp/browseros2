@@ -13,7 +13,7 @@ const DEFAULTS = {
   font:       "'Segoe UI', system-ui, sans-serif",
   darkMode:   true,
   showClock:  true,
-  pinnedApps: ['filemanager', 'texteditor', 'terminal'],
+  pinnedApps: ['filemanager', 'texteditor', 'terminal', 'calculator', 'browser', 'paint', 'appstore', 'musicplayer', 'markdownviewer', 'sysmonitor'],
   userProfile: { name: 'User', avatar: null },
 };
 
