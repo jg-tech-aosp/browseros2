@@ -531,6 +531,49 @@ export class WindowManager {
     document.dispatchEvent(new CustomEvent('bos:appUninstalled', { detail: { appId } }));
   }
 
+  startDrag(instanceId, path, name, icon) {
+    this.endDrag();
+    const ghost = document.createElement('div');
+    ghost.id = 'bos-drag-ghost';
+    ghost.style.cssText = 'position:fixed;pointer-events:none;z-index:99999;display:flex;flex-direction:column;align-items:center;gap:4px;opacity:0.85;transform:translate(-50%,-50%)';
+    ghost.innerHTML = '<span style="font-size:28px">' + (icon || '📄') + '</span>' +
+      '<span style="font-size:11px;color:#fff;text-shadow:0 1px 3px #000;background:rgba(0,0,0,0.5);padding:2px 6px;border-radius:4px">' + (name || '') + '</span>';
+    document.body.appendChild(ghost);
+    this._dragState = { path, name, instanceId };
+
+    const onMove = e => {
+      ghost.style.left = e.clientX + 'px';
+      ghost.style.top  = e.clientY + 'px';
+      const overWindow = e.target.closest('.wm-window');
+      const desktop = document.getElementById('wm-desktop');
+      if (desktop) desktop.style.outline = overWindow ? '' : '2px dashed var(--wm-accent)';
+    };
+
+    const onUp = e => {
+      document.removeEventListener('mousemove', onMove);
+      document.removeEventListener('mouseup',   onUp);
+      const desktop = document.getElementById('wm-desktop');
+      if (desktop) desktop.style.outline = '';
+      const overWindow = e.target.closest('.wm-window');
+      if (!overWindow && this._dragState) {
+        document.dispatchEvent(new CustomEvent('bos:dropOnDesktop', {
+          detail: { path: this._dragState.path, name: this._dragState.name, x: e.clientX, y: e.clientY }
+        }));
+      }
+      // Tell app drag ended
+      if (this._dragState) this.registry?.send(this._dragState.instanceId, { type: 'event.dragEnded', payload: {} });
+      this.endDrag();
+    };
+
+    document.addEventListener('mousemove', onMove);
+    document.addEventListener('mouseup',   onUp);
+  }
+
+  endDrag() {
+    document.getElementById('bos-drag-ghost')?.remove();
+    this._dragState = null;
+  }
+
   // ─── Taskbar ───────────────────────────────────────────────────────────────
 
   _addTaskbarBtn(instanceId, title, icon) {
