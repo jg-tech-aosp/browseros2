@@ -535,54 +535,62 @@ export class WindowManager {
     this.endDrag();
     const ghost = document.createElement('div');
     ghost.id = 'bos-drag-ghost';
-    ghost.style.cssText = 'position:fixed;pointer-events:none;z-index:99999;display:flex;flex-direction:column;align-items:center;gap:4px;opacity:0.85;transform:translate(-50%,-50%);transition:left 0.05s,top 0.05s';
+    ghost.style.cssText = 'position:fixed;pointer-events:none;z-index:99999;display:flex;flex-direction:column;align-items:center;gap:4px;opacity:0.85;transform:translate(-50%,-50%)';
     ghost.innerHTML = '<span style="font-size:28px">' + (icon || '📄') + '</span>' +
       '<span style="font-size:11px;color:#fff;text-shadow:0 1px 3px #000;background:rgba(0,0,0,0.5);padding:2px 6px;border-radius:4px">' + (name || '') + '</span>';
     document.body.appendChild(ghost);
     this._dragState = { path, name, instanceId };
-    // Start at center of the window
     ghost.style.left = '50%';
     ghost.style.top  = '50%';
+
+    // Disable pointer events on ALL iframes so parent page gets mouse events
+    document.querySelectorAll('.wm-iframe').forEach(f => {
+      f._prevPointerEvents = f.style.pointerEvents;
+      f.style.pointerEvents = 'none';
+    });
+
+    const onMove = e => {
+      ghost.style.left = e.clientX + 'px';
+      ghost.style.top  = e.clientY + 'px';
+      const el = document.elementFromPoint(e.clientX, e.clientY);
+      const overWindow = el?.closest('.wm-window');
+      const desktop = document.getElementById('wm-desktop');
+      if (desktop) desktop.style.outline = overWindow ? '' : '2px dashed var(--wm-accent)';
+      if (this._dragState) {
+        this._dragState.lastX = e.clientX;
+        this._dragState.lastY = e.clientY;
+        this._dragState.overDesktop = !overWindow;
+      }
+    };
+
+    const onUp = e => {
+      document.removeEventListener('mousemove', onMove);
+      document.removeEventListener('mouseup',   onUp);
+      // Re-enable pointer events on iframes
+      document.querySelectorAll('.wm-iframe').forEach(f => {
+        f.style.pointerEvents = f._prevPointerEvents || '';
+      });
+      const desktop = document.getElementById('wm-desktop');
+      if (desktop) desktop.style.outline = '';
+      if (this._dragState?.overDesktop) {
+        document.dispatchEvent(new CustomEvent('bos:dropOnDesktop', {
+          detail: { path: this._dragState.path, name: this._dragState.name, x: e.clientX, y: e.clientY }
+        }));
+      }
+      this.endDrag();
+    };
+
+    document.addEventListener('mousemove', onMove);
+    document.addEventListener('mouseup',   onUp);
   }
 
   moveDragGhost(x, y) {
-    const ghost = document.getElementById('bos-drag-ghost');
-    if (!ghost || !this._dragState) return;
-
-    // Find the iframe element for this app instance and offset coordinates
-    const w = this._windows.get(this._dragState.instanceId);
-    let pageX = x, pageY = y;
-    if (w && w.iframe) {
-      const rect = w.iframe.getBoundingClientRect();
-      pageX = x + rect.left;
-      pageY = y + rect.top;
-    }
-
-    ghost.style.left = pageX + 'px';
-    ghost.style.top  = pageY + 'px';
-    const el = document.elementFromPoint(pageX, pageY);
-    const overWindow = el?.closest('.wm-window');
-    const desktop = document.getElementById('wm-desktop');
-    if (desktop) desktop.style.outline = overWindow ? '' : '2px dashed var(--wm-accent)';
-    this._dragState.lastX = pageX;
-    this._dragState.lastY = pageY;
-    this._dragState.overDesktop = !overWindow;
+    // No-op — parent page now handles mouse events directly
   }
 
   endDrag(fireEvent) {
-    const desktop = document.getElementById('wm-desktop');
-    if (desktop) desktop.style.outline = '';
-    if (fireEvent && this._dragState?.overDesktop && this._dragState?.path) {
-      document.dispatchEvent(new CustomEvent('bos:dropOnDesktop', {
-        detail: {
-          path: this._dragState.path,
-          name: this._dragState.name,
-          x: this._dragState.lastX || 200,
-          y: this._dragState.lastY || 200,
-        }
-      }));
-    }
     document.getElementById('bos-drag-ghost')?.remove();
+    document.getElementById('wm-desktop').style.outline = '';
     this._dragState = null;
   }
 
