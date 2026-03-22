@@ -548,15 +548,24 @@ export class WindowManager {
   moveDragGhost(x, y) {
     const ghost = document.getElementById('bos-drag-ghost');
     if (!ghost || !this._dragState) return;
-    ghost.style.left = x + 'px';
-    ghost.style.top  = y + 'px';
-    // Check if over desktop (not over a window)
-    const el = document.elementFromPoint(x, y);
+
+    // Find the iframe element for this app instance and offset coordinates
+    const w = this._windows.get(this._dragState.instanceId);
+    let pageX = x, pageY = y;
+    if (w && w.iframe) {
+      const rect = w.iframe.getBoundingClientRect();
+      pageX = x + rect.left;
+      pageY = y + rect.top;
+    }
+
+    ghost.style.left = pageX + 'px';
+    ghost.style.top  = pageY + 'px';
+    const el = document.elementFromPoint(pageX, pageY);
     const overWindow = el?.closest('.wm-window');
     const desktop = document.getElementById('wm-desktop');
     if (desktop) desktop.style.outline = overWindow ? '' : '2px dashed var(--wm-accent)';
-    this._dragState.lastX = x;
-    this._dragState.lastY = y;
+    this._dragState.lastX = pageX;
+    this._dragState.lastY = pageY;
     this._dragState.overDesktop = !overWindow;
   }
 
