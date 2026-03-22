@@ -23,6 +23,7 @@ import { WindowManager } from './wm/wm.js';
 import { Launcher }      from './apps/launcher.js';
 import { Settings }       from './ui/settings.js';
 import { Notifications }  from './ui/notifications.js';
+import { registerSettingsApp } from './ui/settings-app.js';
 import { Desktop }        from './shell/desktop.js';
 import { Taskbar }       from './shell/taskbar.js';
 import { Search }        from './shell/search.js';
@@ -32,16 +33,16 @@ import { Search }        from './shell/search.js';
 // They are installed as protected apps on first run.
 
 const INBOX_APPS = [
-  '/Apps/filemanager.beep',
-  '/Apps/texteditor.beep',
-  '/Apps/terminal.beep',
-  '/Apps/calculator.beep',
-  '/Apps/browser.beep',
-  '/Apps/paint.beep',
-  '/Apps/appstore.beep',
-  '/Apps/musicplayer.beep',
-  '/Apps/markdownviewer.beep',
-  '/Apps/sysmonitor.beep',
+  'filemanager',
+  'texteditor',
+  'terminal',
+  'calculator',
+  'browser',
+  'paint',
+  'appstore',
+  'musicplayer',
+  'markdownviewer',
+  'sysmonitor',
 ];
 
 // ─── Boot ─────────────────────────────────────────────────────────────────────
@@ -89,6 +90,9 @@ async function boot() {
 
     // Wire launcher into kernel (circular ref resolved here)
     kernel._launcher = launcher;
+
+    // Register native system apps
+    registerSettingsApp({ wm, settings, kernel, db });
 
     // ── 7. Shell + Desktop ────────────────────────────────────────────────────
     console.log('[bos] Booting notifications...');
