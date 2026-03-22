@@ -65,8 +65,10 @@ function hasFsPermission(permissions, path, op) {
     if (!match) continue;
     const [, permPath, permOp] = match;
     if (op !== permOp) continue;
+    // Root permission grants access to everything
+    if (permPath === '/') return true;
     // Prefix match — permPath must be a prefix of path
-    const normalized = permPath === '/' ? '/' : permPath.replace(/\/$/, '');
+    const normalized = permPath.replace(/\/$/, '');
     if (path === normalized || path.startsWith(normalized + '/')) return true;
   }
   return false;
