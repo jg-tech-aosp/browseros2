@@ -28,7 +28,8 @@ import { registerFileManager } from './shell/filemanager.js';
 import { registerBrowser }     from './shell/browser.js';
 import { Desktop }        from './shell/desktop.js';
 import { Taskbar }       from './shell/taskbar.js';
-import { Search }        from './shell/search.js';
+import { StartMenu }  from './shell/startmenu.js';
+import { Search }     from './shell/search.js';
 
 // ─── Inbox app paths ──────────────────────────────────────────────────────────
 // These .beep files must exist in the filesystem at boot.
@@ -110,12 +111,19 @@ async function boot() {
     const taskbar = new Taskbar({ wm, db, launcher, settings, kernel, notifications });
     await taskbar.boot();
 
-    // ── 9. Search ─────────────────────────────────────────────────────────────
-    console.log('[bos] Booting search...');
+    // ── 9. Start Menu + Search ────────────────────────────────────────────────
+    console.log('[bos] Booting start menu...');
+    const startMenu = new StartMenu({ fs, db, wm, launcher, kernel, settings });
+    startMenu.boot();
+
+    // Keep search as a separate Ctrl+Space power-user shortcut
     const search = new Search({ fs, db, wm, launcher, kernel });
     search.boot();
 
-    // Ctrl+Space to toggle search
+    // Start button opens start menu
+    wm._onStart = () => startMenu.toggle();
+
+    // Ctrl+Space opens search overlay
     document.addEventListener('keydown', e => {
       if (e.ctrlKey && e.code === 'Space') {
         e.preventDefault();
