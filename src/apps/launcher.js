@@ -95,6 +95,7 @@ function buildSrcdoc(bosClientSrc, appMainSrc, manifest) {
 <meta charset="UTF-8">
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { width: 100%; height: 100%; overflow: hidden; }
   body {
     font-family: 'Segoe UI', system-ui, sans-serif;
     color: #e0e0ff;
