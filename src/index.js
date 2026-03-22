@@ -21,8 +21,9 @@ import { FileSystem }    from './fs/fs.js';
 import { Kernel }        from './kernel/kernel.js';
 import { WindowManager } from './wm/wm.js';
 import { Launcher }      from './apps/launcher.js';
-import { Settings }      from './ui/settings.js';
-import { Desktop }       from './shell/desktop.js';
+import { Settings }       from './ui/settings.js';
+import { Notifications }  from './ui/notifications.js';
+import { Desktop }        from './shell/desktop.js';
 import { Taskbar }       from './shell/taskbar.js';
 import { Search }        from './shell/search.js';
 
@@ -90,13 +91,17 @@ async function boot() {
     kernel._launcher = launcher;
 
     // ── 7. Shell + Desktop ────────────────────────────────────────────────────
+    console.log('[bos] Booting notifications...');
+    const notifications = new Notifications({ wm });
+    notifications.boot();
+
     console.log('[bos] Booting desktop...');
     const desktop = new Desktop({ fs, db, wm, launcher, kernel, settings });
     await desktop.boot();
 
     // ── 8. Taskbar ────────────────────────────────────────────────────────────
     console.log('[bos] Booting taskbar...');
-    const taskbar = new Taskbar({ wm, db, launcher, settings, kernel });
+    const taskbar = new Taskbar({ wm, db, launcher, settings, kernel, notifications });
     await taskbar.boot();
 
     // ── 9. Search ─────────────────────────────────────────────────────────────
