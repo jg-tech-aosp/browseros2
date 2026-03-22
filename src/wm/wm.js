@@ -308,7 +308,7 @@ export class WindowManager {
     this._systemApps.set(appId, { title, icon, width, height, mount });
   }
 
-  openSystemApp(appId) {
+  openSystemApp(appId, args = {}) {
     const app = this._systemApps.get(appId);
     if (!app) { console.warn(`[wm] Unknown system app: ${appId}`); return; }
     const instanceId = this._createWindow({
@@ -319,9 +319,8 @@ export class WindowManager {
       height: app.height || 500,
       isSystem: true,
     });
-    // Mount native app into the window body (no iframe)
     const body = document.getElementById(`wm-body-${instanceId}`);
-    if (body && app.mount) app.mount(body, instanceId);
+    if (body && app.mount) app.mount(body, instanceId, args);
     return instanceId;
   }
 
