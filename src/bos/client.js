@@ -98,7 +98,8 @@
       setIcon:     (icon)             => send('ui.setIcon',     { icon }),
       setProgress: (value)            => send('ui.setProgress', { value }),
       startDrag:   (path, name, icon) => send('ui.startDrag',   { path, name, icon }),
-      endDrag:     ()                 => send('ui.endDrag',      {}),
+      endDrag:     (dropped)          => send('ui.endDrag',      { dropped: !!dropped }),
+      dragMove:    (x, y)             => send('ui.dragMove',     { x, y }),
 
       // Interactive
       alert:   (message)              => send('ui.alert',   { message }),
