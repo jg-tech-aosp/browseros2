@@ -267,6 +267,9 @@ export class WindowManager {
     console.log('[wm] Booted');
   }
 
+  // Allow index.js to set the start button handler after boot
+  set onStart(fn) { this._onStart = fn; }
+
   _injectStyles() {
     const style = document.createElement('style');
     style.textContent = WM_STYLES;
