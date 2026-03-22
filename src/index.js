@@ -24,6 +24,7 @@ import { Launcher }      from './apps/launcher.js';
 import { Settings }       from './ui/settings.js';
 import { Notifications }  from './ui/notifications.js';
 import { registerSettingsApp } from './ui/settings-app.js';
+import { registerFileManager } from './shell/filemanager.js';
 import { Desktop }        from './shell/desktop.js';
 import { Taskbar }       from './shell/taskbar.js';
 import { Search }        from './shell/search.js';
@@ -33,7 +34,6 @@ import { Search }        from './shell/search.js';
 // They are installed as protected apps on first run.
 
 const INBOX_APPS = [
-  'filemanager',
   'texteditor',
   'terminal',
   'calculator',
@@ -93,6 +93,7 @@ async function boot() {
 
     // Register native system apps
     registerSettingsApp({ wm, settings, kernel, db });
+    registerFileManager({ wm, fs, db, launcher, kernel, settings });
 
     // ── 7. Shell + Desktop ────────────────────────────────────────────────────
     console.log('[bos] Booting notifications...');
