@@ -11,8 +11,15 @@
  * Depends on: JSZip (loaded via CDN in index.html)
  */
 
-// Base URL for fetching app resources — works on any subdirectory hosting
-const BASE_URL = new URL('.', import.meta.url).href.replace('/src/apps/', '/');
+// Base URL for fetching app resources
+const BASE_URL = (() => {
+  // Derive from current page location — works for any repo name
+  const loc = window.location.href;
+  const idx = loc.indexOf('/browseros2/');
+  if (idx !== -1) return loc.substring(0, idx) + '/browseros2/';
+  // Fallback: use origin (works for localhost)
+  return window.location.origin + '/';
+})();
 let _bosClientSrc = null;
 
 async function getBosClientSrc() {
