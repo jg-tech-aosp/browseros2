@@ -24,7 +24,12 @@ export class Desktop {
     this._desktop = document.getElementById('wm-desktop');
     this._setupContextMenu();
     this._setupDropTarget();
-    this._restoreDesktopFiles();
+
+    // Add default app shortcut icons
+    await this._addDefaultAppIcons();
+
+    // Restore user files from /Desktop/
+    await this._restoreDesktopFiles();
 
     // Listen for app installs/uninstalls to refresh icons
     document.addEventListener('bos:appInstalled',   () => this._restoreDesktopFiles());
@@ -38,6 +43,32 @@ export class Desktop {
     console.log('[desktop] Booted');
   }
 
+  async _addDefaultAppIcons() {
+    const DEFAULT_ICONS = [
+      { appId: 'filemanager',    x: 20,  y: 20  },
+      { appId: 'texteditor',     x: 20,  y: 120 },
+      { appId: 'terminal',       x: 20,  y: 220 },
+      { appId: 'calculator',     x: 20,  y: 320 },
+      { appId: 'browser',        x: 20,  y: 420 },
+      { appId: 'paint',          x: 110, y: 20  },
+      { appId: 'appstore',       x: 110, y: 120 },
+      { appId: 'musicplayer',    x: 110, y: 220 },
+      { appId: 'markdownviewer', x: 110, y: 320 },
+      { appId: 'sysmonitor',     x: 110, y: 420 },
+    ];
+
+    for (const { appId, x, y } of DEFAULT_ICONS) {
+      const app = await this._db.apps.get(appId);
+      if (!app) continue;
+      this.addIcon({
+        label: app.name,
+        icon:  app.icon || app.emoji || '⚡',
+        appId,
+        x, y,
+      });
+    }
+  }
+
   // ─── Icon management ───────────────────────────────────────────────────────
 
   addIcon({ label, icon, x, y, fspath, appId, beep }) {
@@ -49,8 +80,12 @@ export class Desktop {
       padding:6px; border-radius:6px;
       transition: background 0.15s;
     `;
+    const iconHtml = icon && icon.startsWith('data:')
+      ? `<img src="${icon}" style="width:36px;height:36px;border-radius:6px;object-fit:cover;display:block;margin:0 auto">`
+      : `<span style="font-size:36px;display:block">${icon}</span>`;
+
     el.innerHTML = `
-      <span style="font-size:36px;display:block">${icon}</span>
+      ${iconHtml}
       <span style="font-size:11px;color:#fff;text-shadow:0 1px 3px #000;
         margin-top:4px;display:block;word-break:break-word">${label}</span>
     `;
@@ -112,7 +147,7 @@ export class Desktop {
           // .beep is a zip — peek at manifest via apps DB first
           const appId = item.name.replace(/\.beep$/, '');
           const app   = await this._db.apps.get(appId);
-          if (app) { icon = app.icon || '⚡'; label = app.name; }
+          if (app) { icon = app.icon || app.emoji || '⚡'; label = app.name; }
           else      { icon = '⚡'; label = item.name; }
           beep = fspath;
         } catch { icon = '⚡'; }
