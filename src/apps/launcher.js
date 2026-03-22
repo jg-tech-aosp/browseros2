@@ -346,21 +346,39 @@ export class Launcher {
   // ─── Seed inbox apps ───────────────────────────────────────────────────────
 
   /**
-   * Install all inbox .beep apps on first boot.
-   * Called by index.js during OS boot if apps store is empty.
+   * Seed inbox apps on first boot.
+   * Fetches each .beep from /apps/{name}.beep, writes to virtual FS, installs as protected.
+   * On subsequent boots the apps are already in IndexedDB so this is a no-op.
    *
-   * @param {string[]} paths - Array of fs paths to install as protected
+   * @param {string[]} appIds - e.g. ['calculator', 'texteditor', ...]
    */
-  async seedInboxApps(paths) {
-    for (const fspath of paths) {
-      const appId = deriveAppId(fspath);
+  async seedInboxApps(appIds) {
+    for (const appId of appIds) {
       const existing = await this._db.apps.get(appId);
-      if (!existing) {
-        try {
-          await this.install(fspath, { protected: true });
-        } catch (e) {
-          console.warn(`[launcher] Failed to seed ${fspath}:`, e.message);
-        }
+      if (existing) continue; // already installed
+
+      const url      = `/apps/${appId}.beep`;
+      const fspath   = `/Apps/${appId}.beep`;
+
+      try {
+        console.log(`[launcher] Seeding ${appId} from ${url}...`);
+        const res = await fetch(url);
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
+        // Store as base64 dataURL in virtual FS
+        const blob      = await res.blob();
+        const dataUrl   = await new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload  = () => resolve(reader.result);
+          reader.onerror = reject;
+          reader.readAsDataURL(blob);
+        });
+
+        await this._fs.write(fspath, dataUrl);
+        await this.install(fspath, { protected: true });
+        console.log(`[launcher] Seeded: ${appId}`);
+      } catch (e) {
+        console.warn(`[launcher] Failed to seed ${appId}:`, e.message);
       }
     }
   }
