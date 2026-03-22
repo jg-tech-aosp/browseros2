@@ -130,20 +130,20 @@ ${bosClientSrc}
   // Wait for boot payload so BOS.os.* is ready
   await BOS.ready();
   // Apply theme CSS variables immediately
-  const theme = BOS.os.theme();
-  if (theme) {
+  const _bosTheme = BOS.os.theme();
+  if (_bosTheme) {
     const r = document.documentElement;
-    if (theme.accent)    r.style.setProperty('--accent',     theme.accent);
-    if (theme.font)      r.style.setProperty('--font',       theme.font);
-    if (theme.darkMode !== undefined) {
-      r.style.setProperty('--bg',         theme.darkMode ? '#1e1e2e' : '#f0f0f5');
-      r.style.setProperty('--text',       theme.darkMode ? '#e0e0ff' : '#111');
-      r.style.setProperty('--text-dim',   theme.darkMode ? '#8888aa' : '#666');
-      r.style.setProperty('--sidebar-bg', theme.darkMode ? '#15152a' : '#d8d8ec');
-      r.style.setProperty('--hover',      theme.darkMode ? '#2d2d4e' : '#c8c8e8');
-      r.style.setProperty('--win-bg',     theme.darkMode ? '#1e1e2e' : '#f0f0f5');
-      r.style.setProperty('--input-bg',   theme.darkMode ? '#2a2a3e' : '#e8e8f0');
-      r.style.setProperty('--win-border', theme.darkMode ? '#3a3a5c' : '#ccc');
+    if (_bosTheme.accent)    r.style.setProperty('--accent',     _bosTheme.accent);
+    if (_bosTheme.font)      r.style.setProperty('--font',       _bosTheme.font);
+    if (_bosTheme.darkMode !== undefined) {
+      r.style.setProperty('--bg',         _bosTheme.darkMode ? '#1e1e2e' : '#f0f0f5');
+      r.style.setProperty('--text',       _bosTheme.darkMode ? '#e0e0ff' : '#111');
+      r.style.setProperty('--text-dim',   _bosTheme.darkMode ? '#8888aa' : '#666');
+      r.style.setProperty('--sidebar-bg', _bosTheme.darkMode ? '#15152a' : '#d8d8ec');
+      r.style.setProperty('--hover',      _bosTheme.darkMode ? '#2d2d4e' : '#c8c8e8');
+      r.style.setProperty('--win-bg',     _bosTheme.darkMode ? '#1e1e2e' : '#f0f0f5');
+      r.style.setProperty('--input-bg',   _bosTheme.darkMode ? '#2a2a3e' : '#e8e8f0');
+      r.style.setProperty('--win-border', _bosTheme.darkMode ? '#3a3a5c' : '#ccc');
     }
   }
   // Listen for theme changes
