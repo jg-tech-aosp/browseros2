@@ -13,8 +13,8 @@ export function registerFileManager({ wm, fs, db, launcher, kernel, settings }) 
     icon:   '📁',
     width:  760,
     height: 520,
-    mount(container, instanceId) {
-      let cwd = '/';
+    mount(container, instanceId, args = {}) {
+      let cwd = args.path || '/';
       const history = ['/'];
       let histIdx = 0;
       let selected = null;

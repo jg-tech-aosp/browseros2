@@ -246,7 +246,6 @@ export class Desktop {
       try { await this._launcher.launch(ic.beep); }
       catch(e) { this._wm.notify('Failed to launch: ' + e.message); }
     } else if (ic.appId) {
-      // Check native system apps first
       if (this._wm._systemApps.has(ic.appId)) {
         this._wm.openSystemApp(ic.appId);
       } else {
@@ -259,12 +258,16 @@ export class Desktop {
   }
 
   async _openFile(path, name) {
+    const stat = await this._fs.stat(path);
+    if (stat && stat.type === 'dir') {
+      this._wm.openSystemApp('filemanager', { path });
+      return;
+    }
     const ext = name.split('.').pop().toLowerCase();
     if (['txt','md','js','json','html','css'].includes(ext)) {
       await this._launcher.launchById('texteditor');
     } else if (['png','jpg','jpeg','gif','webp'].includes(ext)) {
-      // Image viewer — launch with file context
-      await this._launcher.launchById('imageviewer');
+      this._wm.notify('Image viewer coming soon');
     } else {
       this._wm.notify('No app to open: ' + name);
     }
