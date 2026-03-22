@@ -381,8 +381,7 @@ export class WindowManager {
           <button class="wm-btn wm-btn-close" title="Close">✕</button>
         </div>
       </div>
-      <div class="wm-body" id="wm-body-${instanceId}" style="flex:1;overflow:hidden;display:flex;flex-direction:column;position:relative;"></div>
-      <div class="wm-resize"></div>
+      <div class="wm-body" id="wm-body-${instanceId}" style="flex:1;overflow:hidden;display:flex;flex-direction:column;position:relative;min-height:0"></div>
     `;
 
     document.getElementById('wm-desktop').appendChild(el);
@@ -400,7 +399,7 @@ export class WindowManager {
     el.addEventListener('mousedown', () => this.focus(instanceId));
 
     this._makeDraggable(el, el.querySelector('.wm-titlebar'), instanceId);
-    this._makeResizable(el, el.querySelector('.wm-resize'), instanceId);
+    this._makeResizable(el);
 
     this.focus(instanceId);
     this._addTaskbarBtn(instanceId, title, icon);
@@ -640,21 +639,107 @@ export class WindowManager {
   }
 
   _makeResizable(win, handle) {
-    handle.addEventListener('mousedown', e => {
-      const sx = e.clientX, sy = e.clientY;
-      const sw = win.offsetWidth, sh = win.offsetHeight;
+    // Remove the old single handle — we use edge/corner detection instead
+    handle?.remove();
+
+    const EDGE = 6; // px from edge that counts as resize zone
+    const MIN_W = 280, MIN_H = 200;
+
+    // Cursor style based on which edges are active
+    const CURSORS = {
+      n:'n-resize', s:'s-resize', e:'e-resize', w:'w-resize',
+      ne:'ne-resize', nw:'nw-resize', se:'se-resize', sw:'sw-resize',
+    };
+
+    function getEdges(e) {
+      const r   = win.getBoundingClientRect();
+      const x   = e.clientX, y = e.clientY;
+      const top = y - r.top < EDGE;
+      const bot = r.bottom - y < EDGE;
+      const lft = x - r.left < EDGE;
+      const rgt = r.right - x < EDGE;
+      const n = top && !lft && !rgt;
+      const s = bot && !lft && !rgt;
+      const e_ = rgt && !top && !bot;
+      const w = lft && !top && !bot;
+      const ne = top && rgt;
+      const nw = top && lft;
+      const se = bot && rgt;
+      const sw = bot && lft;
+      if (ne) return 'ne'; if (nw) return 'nw';
+      if (se) return 'se'; if (sw) return 'sw';
+      if (n) return 'n'; if (s) return 's';
+      if (e_) return 'e'; if (w) return 'w';
+      return null;
+    }
+
+    win.addEventListener('mousemove', e => {
+      if (win.classList.contains('maximized')) { win.style.cursor = ''; return; }
+      const edge = getEdges(e);
+      win.style.cursor = edge ? CURSORS[edge] : '';
+      // Don't show resize cursor over titlebar buttons or inside content
+      if (e.target.closest('.wm-titlebar-btns') || e.target.closest('.wm-body')) {
+        win.style.cursor = '';
+      }
+    });
+
+    win.addEventListener('mouseleave', () => { win.style.cursor = ''; });
+
+    win.addEventListener('mousedown', e => {
+      if (win.classList.contains('maximized')) return;
+      if (e.target.closest('.wm-titlebar') || e.target.closest('.wm-body')) return;
+      const edge = getEdges(e);
+      if (!edge) return;
+      e.preventDefault();
+      e.stopPropagation();
+
+      const startX = e.clientX, startY = e.clientY;
+      const startW = win.offsetWidth,  startH = win.offsetHeight;
+      const startL = parseInt(win.style.left) || 0;
+      const startT = parseInt(win.style.top)  || 0;
+
+      // Disable iframe pointer events during resize
+      document.querySelectorAll('.wm-iframe').forEach(f => {
+        f._rpe = f.style.pointerEvents;
+        f.style.pointerEvents = 'none';
+      });
+      document.body.style.userSelect = 'none';
+      document.body.style.cursor = CURSORS[edge];
+
       const onMove = e2 => {
-        win.style.width  = Math.max(320, sw + e2.clientX - sx) + 'px';
-        win.style.height = Math.max(240, sh + e2.clientY - sy) + 'px';
+        const dx = e2.clientX - startX;
+        const dy = e2.clientY - startY;
+        let newW = startW, newH = startH, newL = startL, newT = startT;
+
+        if (edge.includes('e')) newW = Math.max(MIN_W, startW + dx);
+        if (edge.includes('s')) newH = Math.max(MIN_H, startH + dy);
+        if (edge.includes('w')) {
+          newW = Math.max(MIN_W, startW - dx);
+          newL = startL + (startW - newW);
+        }
+        if (edge.includes('n')) {
+          newH = Math.max(MIN_H, startH - dy);
+          newT = startT + (startH - newH);
+        }
+
+        win.style.width  = newW + 'px';
+        win.style.height = newH + 'px';
+        win.style.left   = newL + 'px';
+        win.style.top    = newT + 'px';
       };
+
       const onUp = () => {
         document.removeEventListener('mousemove', onMove);
         document.removeEventListener('mouseup',   onUp);
+        document.querySelectorAll('.wm-iframe').forEach(f => {
+          f.style.pointerEvents = f._rpe || '';
+        });
+        document.body.style.userSelect = '';
+        document.body.style.cursor = '';
       };
+
       document.addEventListener('mousemove', onMove);
       document.addEventListener('mouseup',   onUp);
-      e.preventDefault();
-      e.stopPropagation();
     });
   }
 
