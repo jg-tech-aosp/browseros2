@@ -17,7 +17,7 @@ let _bosClientSrc = null;
 
 async function getBosClientSrc() {
   if (_bosClientSrc) return _bosClientSrc;
-  const res = await fetch('/src/bos/client.js');
+  const res = await fetch('src/bos/client.js');
   _bosClientSrc = await res.text();
   return _bosClientSrc;
 }
@@ -357,7 +357,7 @@ export class Launcher {
       const existing = await this._db.apps.get(appId);
       if (existing) continue; // already installed
 
-      const url      = `/apps/${appId}.beep`;
+      const url      = `apps/${appId}.beep`;
       const fspath   = `/Apps/${appId}.beep`;
 
       try {
