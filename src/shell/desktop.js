@@ -104,7 +104,7 @@ export class Desktop {
     };
 
     // Double-click to launch
-    el.ondblclick = () => this._launch(ic);
+    el.addEventListener('dblclick', () => this._launch(ic));
 
     // Right-click
     el.addEventListener('contextmenu', e => {
