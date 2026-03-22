@@ -29,6 +29,13 @@ async function getBosClientSrc() {
   return _bosClientSrc;
 }
 
+function arrayBufferToBase64(buffer) {
+  const bytes = new Uint8Array(buffer);
+  let binary = '';
+  for (let i = 0; i < bytes.byteLength; i++) binary += String.fromCharCode(bytes[i]);
+  return btoa(binary);
+}
+
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 function generateInstanceId(appId) {
@@ -274,20 +281,28 @@ export class Launcher {
   // ─── Internal boot ─────────────────────────────────────────────────────────
 
   async _boot(app) {
-    // Load zip fresh from filesystem for the entry point source
-    const content = await this._fs.read(app.path);
-    if (!content) throw new Error(`App file missing: ${app.path}`);
+    let zipArrayBuffer;
 
-    let zipData;
-    try {
-      zipData = content.startsWith('data:')
-        ? await fetch(content).then(r => r.arrayBuffer())
-        : Uint8Array.from(atob(content), c => c.charCodeAt(0)).buffer;
-    } catch {
-      throw new Error(`Failed to decode .beep zip: ${app.path}`);
+    // Use stored zipData if available (inbox apps seeded without writing to FS)
+    if (app.zipData) {
+      const binary = atob(app.zipData);
+      const bytes  = new Uint8Array(binary.length);
+      for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+      zipArrayBuffer = bytes.buffer;
+    } else {
+      // Fall back to reading from virtual FS
+      const content = await this._fs.read(app.path);
+      if (!content) throw new Error(`App file missing: ${app.path}`);
+      try {
+        zipArrayBuffer = content.startsWith('data:')
+          ? await fetch(content).then(r => r.arrayBuffer())
+          : Uint8Array.from(atob(content), c => c.charCodeAt(0)).buffer;
+      } catch {
+        throw new Error(`Failed to decode .beep zip: ${app.path}`);
+      }
     }
 
-    const zip        = await JSZip.loadAsync(zipData);
+    const zip        = await JSZip.loadAsync(zipArrayBuffer);
     const entryFile  = zip.file(app.entry);
     if (!entryFile) throw new Error(`Entry point not found in .beep: ${app.entry}`);
     const appMainSrc = await entryFile.async('string');
@@ -362,27 +377,49 @@ export class Launcher {
   async seedInboxApps(appIds) {
     for (const appId of appIds) {
       const existing = await this._db.apps.get(appId);
-      if (existing) continue; // already installed
+      if (existing) continue;
 
-      const url      = `${BASE_URL}apps/${appId}.beep`;
-      const fspath   = `/Apps/${appId}.beep`;
+      const url    = `${BASE_URL}apps/${appId}.beep`;
+      const fspath = `/Apps/${appId}.beep`;
 
       try {
         console.log(`[launcher] Seeding ${appId} from ${url}...`);
         const res = await fetch(url);
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
 
-        // Store as base64 dataURL in virtual FS
-        const blob      = await res.blob();
-        const dataUrl   = await new Promise((resolve, reject) => {
-          const reader = new FileReader();
-          reader.onload  = () => resolve(reader.result);
-          reader.onerror = reject;
-          reader.readAsDataURL(blob);
-        });
+        // Load zip directly from response — no virtual FS round-trip
+        const arrayBuffer = await res.arrayBuffer();
+        const zip = await JSZip.loadAsync(arrayBuffer);
 
-        await this._fs.write(fspath, dataUrl);
-        await this.install(fspath, { protected: true });
+        const manifestFile = zip.file('manifest.json');
+        if (!manifestFile) throw new Error(`No manifest.json in ${appId}.beep`);
+        const manifest = JSON.parse(await manifestFile.async('string'));
+        validateManifest(manifest, fspath);
+
+        const iconDataUrl = (manifest.icon && zip.file(manifest.icon))
+          ? await extractIcon(zip, manifest.icon)
+          : null;
+
+        const appRecord = {
+          id:          appId,
+          path:        fspath,
+          name:        manifest.name,
+          version:     manifest.version,
+          icon:        iconDataUrl,
+          emoji:       manifest.emoji || '⚡',
+          permissions: manifest.permissions,
+          events:      manifest.events,
+          entry:       manifest.entry,
+          bos:         manifest.bos,
+          width:       manifest.width  || 640,
+          height:      manifest.height || 480,
+          installedAt: Date.now(),
+          protected:   true,
+          // Store the raw zip as base64 for later launching
+          zipData:     await arrayBufferToBase64(arrayBuffer),
+        };
+
+        await this._db.apps.put(appRecord);
         console.log(`[launcher] Seeded: ${appId}`);
       } catch (e) {
         console.warn(`[launcher] Failed to seed ${appId}:`, e.message);
