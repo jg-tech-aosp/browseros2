@@ -40,14 +40,17 @@ export class Taskbar {
     const container = document.getElementById('wm-taskbar-apps');
     if (!container) return;
 
-    // Rebuild pinned section
     container.querySelectorAll('.wm-pinned-btn').forEach(b => b.remove());
 
     for (const appId of pinned) {
-      const app = allApps.find(a => a.id === appId);
+      // Check DB first, then fall back to native system app
+      let app = allApps.find(a => a.id === appId);
+      if (!app) {
+        const sysApp = this._wm._systemApps.get(appId);
+        if (sysApp) app = { id: appId, name: sysApp.title, icon: null, emoji: sysApp.icon };
+      }
       if (!app) continue;
       const btn = this._makePinnedBtn(app);
-      // Insert before window buttons
       const firstWin = container.querySelector('.wm-taskbar-btn:not(.wm-pinned-btn)');
       container.insertBefore(btn, firstWin || null);
     }
@@ -59,7 +62,7 @@ export class Taskbar {
     btn.dataset.appId = app.id;
     btn.title  = app.name;
     btn.innerHTML = `
-      <span>${app.icon || '⚡'}</span>
+      <span>${app.icon || app.emoji || '⚡'}</span>
       <span class="wm-tb-label">${app.name}</span>
     `;
 
@@ -69,9 +72,14 @@ export class Taskbar {
     btn.onclick = async () => {
       const running = this._kernel.registry.allOf(app.id);
       if (running.length === 0) {
-        // Launch
-        try { await this._launcher.launchById(app.id); }
-        catch(e) { this._wm.notify('Failed to launch: ' + e.message); }
+        try {
+          // Check if it's a native system app first
+          if (this._wm._systemApps.has(app.id)) {
+            this._wm.openSystemApp(app.id);
+          } else {
+            await this._launcher.launchById(app.id);
+          }
+        } catch(e) { this._wm.notify('Failed to launch: ' + e.message); }
       } else if (running.length === 1) {
         // Toggle minimize/focus
         const id = running[0].instanceId;

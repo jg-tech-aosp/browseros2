@@ -44,28 +44,29 @@ export class Desktop {
   }
 
   async _addDefaultAppIcons() {
-    const DEFAULT_ICONS = [
-      { appId: 'filemanager',    x: 20,  y: 20  },
-      { appId: 'texteditor',     x: 20,  y: 120 },
-      { appId: 'terminal',       x: 20,  y: 220 },
-      { appId: 'calculator',     x: 20,  y: 320 },
-      { appId: 'browser',        x: 20,  y: 420 },
-      { appId: 'paint',          x: 110, y: 20  },
-      { appId: 'appstore',       x: 110, y: 120 },
-      { appId: 'musicplayer',    x: 110, y: 220 },
-      { appId: 'markdownviewer', x: 110, y: 320 },
-      { appId: 'sysmonitor',     x: 110, y: 420 },
+    // Native system apps first
+    const nativeIcons = [
+      { appId: 'filemanager', label: 'File Manager', icon: '📁', x: 20, y: 20 },
+      { appId: 'settings',    label: 'Settings',     icon: '⚙️',  x: 20, y: 120 },
     ];
+    nativeIcons.forEach(ic => this.addIcon(ic));
 
-    for (const { appId, x, y } of DEFAULT_ICONS) {
+    // .beep apps from DB
+    const beepIcons = [
+      { appId: 'texteditor',     x: 20,  y: 220 },
+      { appId: 'terminal',       x: 20,  y: 320 },
+      { appId: 'calculator',     x: 20,  y: 420 },
+      { appId: 'browser',        x: 110, y: 20  },
+      { appId: 'paint',          x: 110, y: 120 },
+      { appId: 'appstore',       x: 110, y: 220 },
+      { appId: 'musicplayer',    x: 110, y: 320 },
+      { appId: 'markdownviewer', x: 110, y: 420 },
+      { appId: 'sysmonitor',     x: 200, y: 20  },
+    ];
+    for (const { appId, x, y } of beepIcons) {
       const app = await this._db.apps.get(appId);
       if (!app) continue;
-      this.addIcon({
-        label: app.name,
-        icon:  app.icon || app.emoji || '⚡',
-        appId,
-        x, y,
-      });
+      this.addIcon({ label: app.name, icon: app.icon || app.emoji || '⚡', appId, x, y });
     }
   }
 
@@ -364,7 +365,7 @@ export class Desktop {
         await this._restoreDesktopFiles();
       }},
       'sep',
-      { label: '📂 File Manager', action: () => this._launcher.launchById('filemanager') },
+      { label: '📂 File Manager', action: () => this._wm.openSystemApp('filemanager') },
       { label: '⌨️ Terminal',     action: () => this._launcher.launchById('terminal') },
       { label: '🎨 Paint',        action: () => this._launcher.launchById('paint') },
       'sep',
