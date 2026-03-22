@@ -182,7 +182,13 @@ export class Kernel {
       // ── App management ──────────────────────────────────────────────────────
 
       case 'app.open': {
-        this._wm.openSystemApp(payload.appId);
+        const systemApp = this._wm._systemApps.get(payload.appId);
+        if (systemApp) {
+          this._wm.openSystemApp(payload.appId);
+        } else {
+          // Try launching as a .beep app by ID
+          await this._launcher.launchById(payload.appId);
+        }
         return null;
       }
 
