@@ -284,7 +284,7 @@ export function registerFileManager({ wm, fs, db, launcher, kernel, settings }) 
         } else if (['txt','md','js','json','html','css'].includes(ext)) {
           await launcher.launchById('texteditor');
         } else if (['mp3','wav','ogg'].includes(ext)) {
-          await launcher.launchById('musicplayer', { file: path });
+          wm.openSystemApp('musicplayer', { file: path });
         } else if (['png','jpg','jpeg','gif','webp'].includes(ext)) {
           wm.notify('Image viewer coming soon');
         } else {

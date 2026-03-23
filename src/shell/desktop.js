@@ -267,7 +267,7 @@ export class Desktop {
     if (['txt','md','js','json','html','css'].includes(ext)) {
       await this._launcher.launchById('texteditor');
     } else if (['mp3','wav','ogg'].includes(ext)) {
-      await this._launcher.launchById('musicplayer', { file: path });
+      this._wm.openSystemApp('musicplayer', { file: path });
     } else if (['png','jpg','jpeg','gif','webp'].includes(ext)) {
       this._wm.notify('Image viewer coming soon');
     } else {
