@@ -76,6 +76,9 @@ const WM_STYLES = `
   .bos-desktop-icon {
     user-select: none;
   }
+  .wm-titlebar {
+    height: 38px;
+    background: var(--wm-titlebar);
     display: flex;
     align-items: center;
     padding: 0 10px;
@@ -649,7 +652,7 @@ export class WindowManager {
     // Remove the old single handle — we use edge/corner detection instead
     handle?.remove();
 
-    const EDGE = 10; // px from edge that counts as resize zone
+    const EDGE = 14; // px from edge that counts as resize zone
     const MIN_W = 280, MIN_H = 200;
 
     // Cursor style based on which edges are active
