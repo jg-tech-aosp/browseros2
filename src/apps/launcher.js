@@ -258,30 +258,24 @@ export class Launcher {
    * Launch an installed .beep app by its app ID.
    * @param {string} appId
    */
-  async launchById(appId) {
+  async launchById(appId, args = {}) {
     const app = await this._db.apps.get(appId);
     if (!app) throw new Error(`App not installed: ${appId}`);
-    return this._boot(app);
+    return this._boot(app, args);
   }
 
-  /**
-   * Launch a .beep app directly from a filesystem path.
-   * Installs temporarily if not already in the app DB.
-   * @param {string} fspath
-   */
-  async launch(fspath) {
+  async launch(fspath, args = {}) {
     const appId = deriveAppId(fspath);
     let app = await this._db.apps.get(appId);
     if (!app) {
-      // Install on the fly (not protected, not persisted permanently)
       app = await this.install(fspath);
     }
-    return this._boot(app);
+    return this._boot(app, args);
   }
 
   // ─── Internal boot ─────────────────────────────────────────────────────────
 
-  async _boot(app) {
+  async _boot(app, args = {}) {
     let zipArrayBuffer;
 
     // Use stored zipData if available (inbox apps seeded without writing to FS)
@@ -349,6 +343,7 @@ export class Launcher {
     await this._kernel.sendBootPayload(instanceId, {
       version: '2.0.0',
       theme,
+      args,
       env: {
         locale:   navigator.language || 'en-US',
         timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
