@@ -58,9 +58,9 @@ export function registerMusicPlayer({ wm, fs }) {
       function mkCtrlBtn(icon, size) {
         const b = document.createElement('button');
         b.textContent = icon;
-        b.style.cssText = `background:none;border:none;color:var(--wm-text);cursor:pointer;font-size:${size||22}px;width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;transition:background 0.15s`;
+        b.style.cssText = `background:transparent;border:none;color:var(--wm-text);cursor:pointer;font-size:${size||22}px;width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;transition:background 0.15s`;
         b.onmouseenter = () => b.style.background = 'rgba(255,255,255,0.1)';
-        b.onmouseleave = () => b.style.background = '';
+        b.onmouseleave = () => b.style.background = 'transparent';
         return b;
       }
 
