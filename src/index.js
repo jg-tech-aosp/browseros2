@@ -29,6 +29,7 @@ import { registerBrowser }      from './shell/browser.js';
 import { registerAppStore }     from './shell/appstore.js';
 import { registerMusicPlayer }  from './shell/musicplayer.js';
 import { registerTextEditor }   from './shell/texteditor.js';
+import { registerTerminal }     from './shell/terminal.js';
 import { Desktop }        from './shell/desktop.js';
 import { Taskbar }       from './shell/taskbar.js';
 import { StartMenu }  from './shell/startmenu.js';
@@ -98,6 +99,7 @@ async function boot() {
     registerAppStore({ wm, fs, db, launcher });
     registerMusicPlayer({ wm, fs });
     registerTextEditor({ wm, fs });
+    registerTerminal({ wm, fs, launcher, kernel, settings });
 
     // ── 7. Shell + Desktop ────────────────────────────────────────────────────
     console.log('[bos] Booting notifications...');
