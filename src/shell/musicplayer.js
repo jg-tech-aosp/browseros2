@@ -187,6 +187,12 @@ export function registerMusicPlayer({ wm, fs }) {
       } else {
         renderPlaylist();
       }
+
+      // Return cleanup — called when window is closed
+      return function() {
+        audio.pause();
+        audio.src = '';
+      };
     }
   });
 }
