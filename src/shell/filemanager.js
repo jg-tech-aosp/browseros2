@@ -123,11 +123,17 @@ export function registerFileManager({ wm, fs, db, launcher, kernel, settings }) 
         pathInput.value = cwd;
         selected = null;
         grid.innerHTML = '';
+        renderSidebar();
+
+        // Special case: /Apps shows all installed apps from DB + native system apps
+        if (cwd === '/Apps') {
+          await renderAppsDir();
+          return;
+        }
+
         const items = await fs.ls(cwd);
         if (!items) { grid.innerHTML = '<div style="padding:16px;color:var(--wm-text-dim)">Cannot read directory</div>'; return; }
-
         statusBar.textContent = items.length + ' item' + (items.length !== 1 ? 's' : '');
-        renderSidebar();
 
         items.forEach(item => {
           const el = document.createElement('div');
@@ -273,6 +279,70 @@ export function registerFileManager({ wm, fs, db, launcher, kernel, settings }) 
           render();
           wm.notify('Moved "' + filename + '" to ' + cwd);
         });
+      }
+
+      // ── /Apps virtual directory ───────────────────────────────────────────────
+
+      async function renderAppsDir() {
+        const allApps = await db.apps.all();
+        const nativeApps = [];
+        for (const [id, sys] of wm._systemApps) {
+          nativeApps.push({ id, name: sys.title, emoji: sys.icon, icon: null, native: true });
+        }
+
+        const combined = [
+          ...nativeApps,
+          ...allApps.filter(a => !nativeApps.find(n => n.id === a.id)),
+        ].sort((a, b) => a.name.localeCompare(b.name));
+
+        statusBar.textContent = combined.length + ' app' + (combined.length !== 1 ? 's' : '') + ' installed';
+
+        if (!combined.length) {
+          grid.innerHTML = '<div style="padding:16px;color:var(--wm-text-dim)">No apps installed</div>';
+          return;
+        }
+
+        combined.forEach(app => {
+          const el = document.createElement('div');
+          el.style.cssText = 'display:flex;flex-direction:column;align-items:center;padding:8px 4px;border-radius:6px;cursor:pointer;text-align:center;transition:background 0.1s;font-size:11px;width:80px;height:90px;overflow:hidden;flex-shrink:0';
+
+          const iconEl = document.createElement('div');
+          iconEl.style.cssText = 'font-size:30px;display:flex;align-items:center;justify-content:center;width:100%';
+          if (app.icon && app.icon.startsWith('data:')) {
+            iconEl.innerHTML = '<img src="' + app.icon + '" style="width:30px;height:30px;border-radius:4px;object-fit:cover">';
+          } else {
+            iconEl.textContent = app.emoji || '⚡';
+          }
+
+          const labelEl = document.createElement('div');
+          labelEl.style.cssText = 'margin-top:4px;word-break:break-word;color:var(--wm-text);font-size:11px;line-height:1.2;max-height:2.4em;overflow:hidden';
+          labelEl.textContent = app.name;
+
+          el.appendChild(iconEl);
+          el.appendChild(labelEl);
+
+          el.onmouseenter = () => el.style.background = 'rgba(255,255,255,0.08)';
+          el.onmouseleave = () => { if (!el.hasAttribute('data-selected')) el.style.background = ''; };
+          el.onclick = e => {
+            grid.querySelectorAll('[data-selected]').forEach(s => { s.style.background = ''; s.removeAttribute('data-selected'); });
+            el.style.background = 'rgba(0,120,212,0.2)';
+            el.setAttribute('data-selected', '1');
+            statusBar.textContent = app.name + (app.native ? ' (native)' : ' v' + (app.version || '?'));
+            e.stopPropagation();
+          };
+          el.ondblclick = () => {
+            if (app.native) wm.openSystemApp(app.id);
+            else launcher.launchById(app.id);
+          };
+
+          grid.appendChild(el);
+        });
+
+        grid.onclick = e => {
+          if (!e.target.closest('[data-selected]')) {
+            grid.querySelectorAll('[data-selected]').forEach(s => { s.style.background = ''; s.removeAttribute('data-selected'); });
+          }
+        };
       }
 
       // ── File opening ──────────────────────────────────────────────────────────
