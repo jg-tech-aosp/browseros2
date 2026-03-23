@@ -41,6 +41,7 @@ const WM_STYLES = `
     position: absolute;
     inset: 0 0 var(--wm-taskbar-h) 0;
     overflow: hidden;
+    user-select: none;
   }
 
   /* ── Windows ── */
@@ -56,6 +57,7 @@ const WM_STYLES = `
     min-height: 240px;
     overflow: hidden;
     transition: box-shadow 0.15s;
+    user-select: none;
   }
   .wm-window.focused {
     box-shadow: var(--wm-shadow), 0 0 0 1px var(--wm-accent);
@@ -68,9 +70,12 @@ const WM_STYLES = `
     border-radius: 0;
   }
 
-  .wm-titlebar {
-    height: 38px;
-    background: var(--wm-titlebar);
+  .wm-titlebar, .wm-titlebar-btns, .wm-btn, #wm-taskbar, #wm-taskbar-apps, .wm-taskbar-btn, .wm-pinned-btn, #wm-start-btn, #wm-tray, #wm-clock {
+    user-select: none;
+  }
+  .bos-desktop-icon {
+    user-select: none;
+  }
     display: flex;
     align-items: center;
     padding: 0 10px;
@@ -644,7 +649,7 @@ export class WindowManager {
     // Remove the old single handle — we use edge/corner detection instead
     handle?.remove();
 
-    const EDGE = 6; // px from edge that counts as resize zone
+    const EDGE = 10; // px from edge that counts as resize zone
     const MIN_W = 280, MIN_H = 200;
 
     // Cursor style based on which edges are active
