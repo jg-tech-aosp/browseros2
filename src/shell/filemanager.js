@@ -365,12 +365,19 @@ export function registerFileManager({ wm, fs, db, launcher, kernel, settings }) 
       // ── Context menus ─────────────────────────────────────────────────────────
 
       function showItemMenu(x, y, item) {
-        showMenu(x, y, [
+        const ext = item.name.split('.').pop().toLowerCase();
+        const isImage = ['png','jpg','jpeg','gif','webp'].includes(ext);
+        const items = [
           { label: '📂 Open', action: () => {
             if (item.type === 'dir') navigate(fullPath(item.name));
             else openFile(fullPath(item.name), item.name);
           }},
-          'sep',
+        ];
+        if (isImage) {
+          items.push({ label: '🎨 Open in Paint', action: () => launcher.launchById('paint') });
+        }
+        items.push('sep');
+        items.push(
           { label: '✂️ Cut', action: () => {
             clipboard = { op: 'cut', path: fullPath(item.name), name: item.name };
             statusBar.textContent = 'Cut: ' + item.name;
@@ -388,8 +395,9 @@ export function registerFileManager({ wm, fs, db, launcher, kernel, settings }) 
             if (!confirm('Delete "' + item.name + '"?')) return;
             const res = await fs.rm(fullPath(item.name));
             if (res.ok) render(); else wm.notify('Delete failed: ' + res.error);
-          }},
-        ]);
+          }}
+        );
+        showMenu(x, y, items);
       }
 
       function showBlankMenu(x, y) {

@@ -448,9 +448,19 @@ export class Desktop {
   }
 
   _showIconMenu(x, y, ic, key) {
+    const ext = ic.label ? ic.label.split('.').pop().toLowerCase() : '';
+    const isImage = ['png','jpg','jpeg','gif','webp'].includes(ext);
+
     const items = [
       { label: '📂 Open', action: () => this._launch(ic) },
-      'sep',
+    ];
+
+    if (isImage && ic.fspath) {
+      items.push({ label: '🎨 Open in Paint', action: () => this._launcher.launchById('paint') });
+    }
+
+    items.push('sep');
+    items.push(
       { label: '✏️ Rename', action: async () => {
         const nn = prompt('New name:', ic.label);
         if (!nn || nn === ic.label) return;
@@ -471,13 +481,13 @@ export class Desktop {
             await this._savePositions();
           } else this._wm.notify('Delete failed: ' + res.error);
         }
-      }},
-    ];
+      }}
+    );
 
     if (ic.beep) {
       items.push('sep');
-      items.push({ label: '📝 Edit .beep', action: async () => {
-        this._wm.openSystemApp('texteditor', { file: path });
+      items.push({ label: '📝 Edit .beep', action: () => {
+        this._wm.openSystemApp('texteditor', { file: ic.fspath });
       }});
     }
 
