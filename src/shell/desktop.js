@@ -440,7 +440,7 @@ export class Desktop {
       }},
       'sep',
       { label: '📂 File Manager', action: () => this._wm.openSystemApp('filemanager') },
-      { label: '⌨️ Terminal',     action: () => this._launcher.launchById('terminal') },
+      { label: '⌨️ Terminal',     action: () => this._wm.openSystemApp('terminal') },
       { label: '🎨 Paint',        action: () => this._launcher.launchById('paint') },
       'sep',
       { label: '⚙️ Settings',    action: () => this._wm.openSystemApp('settings') },
