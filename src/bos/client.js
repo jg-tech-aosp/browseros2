@@ -110,8 +110,8 @@
     // ── BOS.app ──────────────────────────────────────────────────────────────
 
     app: {
-      open:      (appId) => send('app.open',      { appId }),
-      launch:    (path)  => send('app.launch',    { path }),
+      open:      (appId, args) => send('app.open',      { appId, args: args || {} }),
+      launch:    (path,  args) => send('app.launch',    { path,  args: args || {} }),
       install:   (path)  => send('app.install',   { path }),
       uninstall: (id)    => send('app.uninstall', { id }),
       self:      ()      => send('app.self',      {}),
@@ -130,6 +130,7 @@
       version: () => _bootData?.version  ?? '2.0.0',
       theme:   () => _bootData?.theme    ?? {},
       env:     () => _bootData?.env      ?? {},
+      args:    () => _bootData?.args     ?? {},
     },
 
     // ── BOS.on ───────────────────────────────────────────────────────────────
