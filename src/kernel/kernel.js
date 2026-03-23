@@ -199,10 +199,9 @@ export class Kernel {
       case 'app.open': {
         const systemApp = this._wm._systemApps.get(payload.appId);
         if (systemApp) {
-          this._wm.openSystemApp(payload.appId);
+          this._wm.openSystemApp(payload.appId, payload.args || {});
         } else {
-          // Try launching as a .beep app by ID
-          await this._launcher.launchById(payload.appId);
+          await this._launcher.launchById(payload.appId, payload.args || {});
         }
         return null;
       }
@@ -210,7 +209,7 @@ export class Kernel {
       case 'app.launch': {
         const beep = await this._fs.read(payload.path);
         if (!beep) throw new Error(`File not found: ${payload.path}`);
-        await this._launcher.launch(payload.path, beep);
+        await this._launcher.launch(payload.path, payload.args || {});
         return null;
       }
 
