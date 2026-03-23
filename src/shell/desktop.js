@@ -266,6 +266,8 @@ export class Desktop {
     const ext = name.split('.').pop().toLowerCase();
     if (['txt','md','js','json','html','css'].includes(ext)) {
       await this._launcher.launchById('texteditor');
+    } else if (['mp3','wav','ogg'].includes(ext)) {
+      await this._launcher.launchById('musicplayer');
     } else if (['png','jpg','jpeg','gif','webp'].includes(ext)) {
       this._wm.notify('Image viewer coming soon');
     } else {

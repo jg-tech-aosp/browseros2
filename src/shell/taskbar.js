@@ -165,7 +165,7 @@ export class Taskbar {
     this._bellBtn.title = 'Notifications';
     this._bellBtn.onmouseenter = () => this._bellBtn.style.background = 'rgba(255,255,255,0.1)';
     this._bellBtn.onmouseleave = () => this._bellBtn.style.background = '';
-    this._bellBtn.onclick = () => this._toggleNotificationCenter();
+    this._bellBtn.onclick = () => { this._bellBtn.style.background = ''; this._toggleNotificationCenter(); };
 
     this._badgeEl = document.createElement('span');
     this._badgeEl.style.cssText = `
@@ -189,7 +189,7 @@ export class Taskbar {
     qsBtn.title = 'Quick Settings';
     qsBtn.onmouseenter = () => qsBtn.style.background = 'rgba(255,255,255,0.1)';
     qsBtn.onmouseleave = () => qsBtn.style.background = '';
-    qsBtn.onclick = () => this._toggleQuickSettings();
+    qsBtn.onclick = () => { qsBtn.style.background = ''; this._toggleQuickSettings(); };
     tray.appendChild(qsBtn);
 
     clock.parentNode.insertBefore(tray, clock);
