@@ -265,7 +265,7 @@ export class Desktop {
     }
     const ext = name.split('.').pop().toLowerCase();
     if (['txt','md','js','json','html','css'].includes(ext)) {
-      await this._launcher.launchById('texteditor');
+      this._wm.openSystemApp('texteditor', { file: path });
     } else if (['mp3','wav','ogg'].includes(ext)) {
       this._wm.openSystemApp('musicplayer', { file: path });
     } else if (['png','jpg','jpeg','gif','webp'].includes(ext)) {
@@ -477,7 +477,7 @@ export class Desktop {
     if (ic.beep) {
       items.push('sep');
       items.push({ label: '📝 Edit .beep', action: async () => {
-        await this._launcher.launchById('texteditor');
+        this._wm.openSystemApp('texteditor', { file: path });
       }});
     }
 

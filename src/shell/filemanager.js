@@ -282,7 +282,7 @@ export function registerFileManager({ wm, fs, db, launcher, kernel, settings }) 
         if (name.endsWith('.beep')) {
           await launcher.launch(path);
         } else if (['txt','md','js','json','html','css'].includes(ext)) {
-          await launcher.launchById('texteditor');
+          wm.openSystemApp('texteditor', { file: path });
         } else if (['mp3','wav','ogg'].includes(ext)) {
           wm.openSystemApp('musicplayer', { file: path });
         } else if (['png','jpg','jpeg','gif','webp'].includes(ext)) {
