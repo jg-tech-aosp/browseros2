@@ -156,7 +156,7 @@ export class Taskbar {
     // Notification bell
     this._bellBtn = document.createElement('button');
     this._bellBtn.style.cssText = `
-      background:none;border:none;color:#e0e0ff;cursor:pointer;
+      background:transparent;border:none;color:#e0e0ff;cursor:pointer;
       font-size:16px;position:relative;width:32px;height:32px;
       display:flex;align-items:center;justify-content:center;
       border-radius:6px;transition:background 0.15s;
@@ -164,8 +164,8 @@ export class Taskbar {
     this._bellBtn.textContent = '🔔';
     this._bellBtn.title = 'Notifications';
     this._bellBtn.onmouseenter = () => this._bellBtn.style.background = 'rgba(255,255,255,0.1)';
-    this._bellBtn.onmouseleave = () => this._bellBtn.style.background = '';
-    this._bellBtn.onclick = () => { this._bellBtn.style.background = ''; this._toggleNotificationCenter(); };
+    this._bellBtn.onmouseleave = () => this._bellBtn.style.background = 'transparent';
+    this._bellBtn.onclick = () => { this._bellBtn.style.background = 'transparent'; this._toggleNotificationCenter(); };
 
     this._badgeEl = document.createElement('span');
     this._badgeEl.style.cssText = `
@@ -180,7 +180,7 @@ export class Taskbar {
     // Quick settings button
     const qsBtn = document.createElement('button');
     qsBtn.style.cssText = `
-      background:none;border:none;color:#e0e0ff;cursor:pointer;
+      background:transparent;border:none;color:#e0e0ff;cursor:pointer;
       font-size:16px;width:32px;height:32px;
       display:flex;align-items:center;justify-content:center;
       border-radius:6px;transition:background 0.15s;
@@ -188,8 +188,8 @@ export class Taskbar {
     qsBtn.textContent = '⚙️';
     qsBtn.title = 'Quick Settings';
     qsBtn.onmouseenter = () => qsBtn.style.background = 'rgba(255,255,255,0.1)';
-    qsBtn.onmouseleave = () => qsBtn.style.background = '';
-    qsBtn.onclick = () => { qsBtn.style.background = ''; this._toggleQuickSettings(); };
+    qsBtn.onmouseleave = () => qsBtn.style.background = 'transparent';
+    qsBtn.onclick = () => { qsBtn.style.background = 'transparent'; this._toggleQuickSettings(); };
     tray.appendChild(qsBtn);
 
     clock.parentNode.insertBefore(tray, clock);
