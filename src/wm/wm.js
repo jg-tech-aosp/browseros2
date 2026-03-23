@@ -322,6 +322,7 @@ export class WindowManager {
   openSystemApp(appId, args = {}) {
     const app = this._systemApps.get(appId);
     if (!app) { console.warn(`[wm] Unknown system app: ${appId}`); return; }
+    let instanceOnClose = null;
     const instanceId = this._createWindow({
       instanceId: `sys_${appId}_${Date.now()}`,
       title:  app.title,
@@ -329,9 +330,13 @@ export class WindowManager {
       width:  app.width  || 700,
       height: app.height || 500,
       isSystem: true,
+      onClose: (id) => { if (instanceOnClose) instanceOnClose(id); },
     });
     const body = document.getElementById(`wm-body-${instanceId}`);
-    if (body && app.mount) app.mount(body, instanceId, args);
+    if (body && app.mount) {
+      const cleanup = app.mount(body, instanceId, args);
+      if (typeof cleanup === 'function') instanceOnClose = cleanup;
+    }
     return instanceId;
   }
 
