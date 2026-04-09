@@ -96,17 +96,17 @@ export class Desktop {
 
   async _addDefaultAppIcons() {
     const DEFAULT_APPS = [
-      { appId: 'filemanager', label: 'File Manager', icon: '📁', native: true },
-      { appId: 'browser',     label: 'Browser',      icon: '🌐', native: true },
-      { appId: 'settings',    label: 'Settings',     icon: '⚙️',  native: true },
-      { appId: 'texteditor',     native: false },
-      { appId: 'terminal',       native: false },
+      { appId: 'filemanager',    label: 'File Manager',   icon: '📁', native: true },
+      { appId: 'browser',        label: 'Browser',        icon: '🌐', native: true },
+      { appId: 'settings',       label: 'Settings',       icon: '⚙️',  native: true },
+      { appId: 'texteditor',     label: 'Text Editor',    icon: '📝', native: true },
+      { appId: 'terminal',       label: 'Terminal',       icon: '⌨️',  native: true },
+      { appId: 'paint',          label: 'Paint',          icon: '🎨', native: true },
+      { appId: 'appstore',       label: 'App Store',      icon: '📦', native: true },
+      { appId: 'musicplayer',    label: 'Music Player',   icon: '🎵', native: true },
+      { appId: 'sysmonitor',     label: 'System Monitor', icon: '📊', native: true },
       { appId: 'calculator',     native: false },
-      { appId: 'paint',          native: false },
-      { appId: 'appstore',       native: false },
-      { appId: 'musicplayer',    native: false },
       { appId: 'markdownviewer', native: false },
-      { appId: 'sysmonitor',     native: false },
     ];
 
     for (const def of DEFAULT_APPS) {
@@ -441,7 +441,7 @@ export class Desktop {
       'sep',
       { label: '📂 File Manager', action: () => this._wm.openSystemApp('filemanager') },
       { label: '⌨️ Terminal',     action: () => this._wm.openSystemApp('terminal') },
-      { label: '🎨 Paint',        action: () => this._launcher.launchById('paint') },
+      { label: '🎨 Paint',        action: () => this._wm.openSystemApp('paint') },
       'sep',
       { label: '⚙️ Settings',    action: () => this._wm.openSystemApp('settings') },
     ]);
@@ -456,7 +456,7 @@ export class Desktop {
     ];
 
     if (isImage && ic.fspath) {
-      items.push({ label: '🎨 Open in Paint', action: () => this._launcher.launchById('paint') });
+      items.push({ label: '🎨 Open in Paint', action: () => this._wm.openSystemApp('paint') });
     }
 
     items.push('sep');
